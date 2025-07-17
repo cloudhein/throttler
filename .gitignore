@@ -25,3 +25,5 @@
 docker-compose.yaml
 setup.sh
 .ratelimit-test.sh
+
+manifests/nginx-certs/*
