@@ -41,6 +41,7 @@ jobs:
 
   code-quality:
     runs-on: runner-scaleset-01
+    needs: [build]
     steps:
       - name: checkout code
         uses: actions/checkout@v4
