@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: [self-hosted, runner-scaleset-01]
+    runs-on: runner-scaleset-01
     steps:
       - name: checkout code
         uses: actions/checkout@v4
@@ -40,7 +40,7 @@ jobs:
           go test ./...
 
   code-quality:
-    runs-on: [self-hosted, runner-scaleset-01]
+    runs-on: runner-scaleset-01
     steps:
       - name: checkout code
         uses: actions/checkout@v4
