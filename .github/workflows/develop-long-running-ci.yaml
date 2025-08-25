@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: long-running-runner
+    runs-on: self-hosted
     steps:
       - name: checkout code
         uses: actions/checkout@v4
@@ -40,7 +40,7 @@ jobs:
           go test ./...
 
   code-quality:
-    runs-on: long-running-runner
+    runs-on: self-hosted
     needs: [build]
     steps:
       - name: checkout code
