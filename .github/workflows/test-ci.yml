@@ -1,0 +1,10 @@
+name: Test ARC
+on: workflow_dispatch
+
+jobs:
+  test:
+    runs-on: [self-hosted, runner-scaleset-01]
+    steps:
+      - run: echo "Runner is working!"
+      - run: whoami
+      - run: pwd
