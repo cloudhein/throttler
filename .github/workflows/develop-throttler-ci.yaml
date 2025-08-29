@@ -126,22 +126,22 @@ jobs:
           repository: cloudhein/flextrack-microservices
           ref: main  # or your target branch
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # PAT with repo access
-          path: flextrack-local-kind  # Checkout to subdirectory
+          path: flextrack-repo  # Checkout to subdirectory & used in multiple repo checkout
 
       - name: Verify files exist
         run: |
           echo "Checking directory structure:"
-          ls -la flextrack-local-kind/
+          ls -la flextrack-repo/flextrack-local-kind/
           echo "Looking for throttler.yaml:"
-          ls -la flextrack-local-kind/throttler.yaml
+          ls -la flextrack-repo/flextrack-local-kind/throttler.yaml
 
       - name: Update Kubernetes manifest
         run: |
           # Update the manifest file in the k8s-manifests directory
-          sed -i "s|image: .*|image: ${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }}|g" flextrack-local-kind/throttler.yaml
+          sed -i "s|image: .*|image: ${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }}|g" flextrack-repo/flextrack-local-kind/throttler.yaml
 
       - name: Commit and push changes to K8s repo
-        working-directory: flextrack-local-kind
+        working-directory: flextrack-repo/flextrack-local-kind
         run: |
           git config --local user.name "GitHub Actions Bot"
           git config --local user.email "actions@github.com"
