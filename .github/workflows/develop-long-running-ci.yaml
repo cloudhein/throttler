@@ -1,7 +1,7 @@
 name: Develop Long Running Runner CI
 on:
   push:
-    branches: ['develop']
+    branches: ['staging']
 
 jobs:
   build:
