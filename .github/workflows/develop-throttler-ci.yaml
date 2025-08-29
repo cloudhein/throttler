@@ -84,7 +84,7 @@ jobs:
         uses: actions/checkout@v4
   
       - name: Set up Docker Buildx
-        uses: docker/setup-docker-action@v4
+        uses: docker/setup-buildx-action@v3
 
       - name: Authenticate to Docker Hub
         uses: docker/login-action@v3
@@ -100,7 +100,7 @@ jobs:
         id: trivy-scan
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: ${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }}
+          image-ref: ${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }} 
           scan-type: image
           severity: 'CRITICAL'
           format: 'table'
