@@ -128,17 +128,24 @@ jobs:
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # PAT with repo access
           path: flextrack-local-kind  # Checkout to subdirectory
 
+      - name: Verify files exist
+        run: |
+          echo "Checking directory structure:"
+          ls -la flextrack-local-kind/
+          echo "Looking for throttler.yaml:"
+          ls -la flextrack-local-kind/throttler.yaml
+
       - name: Update Kubernetes manifest
         run: |
           # Update the manifest file in the k8s-manifests directory
           sed -i "s|image: .*|image: ${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }}|g" flextrack-local-kind/throttler.yaml
 
       - name: Commit and push changes to K8s repo
-        working-directory: k8s-manifests
+        working-directory: flextrack-local-kind
         run: |
           git config --local user.name "GitHub Actions Bot"
           git config --local user.email "actions@github.com"
-          git add flextrack-local-kind/throttler.yaml
+          git add throttler.yaml
           
           # Check if there are changes to commit
           if git diff --staged --quiet; then
