@@ -100,7 +100,7 @@ jobs:
         id: trivy-scan
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: '${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }}'
+          image-ref: ${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }}
           scan-type: image
           severity: 'CRITICAL'
           format: 'table'
