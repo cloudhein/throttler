@@ -113,3 +113,38 @@ jobs:
         if: steps.trivy-scan.outcome == 'success'
         run: docker push "${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }}"
 
+  update-k8s-manifest:
+    runs-on: ubuntu-latest
+    needs: container
+    steps:
+      - name: Checkout application code
+        uses: actions/checkout@v4
+
+      - name: Checkout K8s manifest repository
+        uses: actions/checkout@v4
+        with:
+          repository: cloudhein/flextrack-microservices
+          ref: main  # or your target branch
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # PAT with repo access
+          path: flextrack-local-kind  # Checkout to subdirectory
+
+      - name: Update Kubernetes manifest
+        run: |
+          # Update the manifest file in the k8s-manifests directory
+          sed -i "s|image: .*|image: ${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }}|g" flextrack-local-kind/throttler.yaml
+
+      - name: Commit and push changes to K8s repo
+        working-directory: k8s-manifests
+        run: |
+          git config --local user.name "GitHub Actions Bot"
+          git config --local user.email "actions@github.com"
+          git add flextrack-local-kind/throttler.yaml
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "[CI] Update throttler image to ${{ github.run_id }} from ${{ github.repository }} [skip ci]"
+            git push origin main  # or your target branch
+          fi
+
