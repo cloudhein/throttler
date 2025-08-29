@@ -41,7 +41,7 @@ jobs:
           go test 
 
   code-quality:
-    runs-on: runner-scaleset-01
+    runs-on: ubuntu-latest
     needs: [build]
     steps:
       - name: checkout code
