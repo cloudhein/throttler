@@ -3,8 +3,11 @@ on:
   pull_request:
     branches: ['main']
     types: [opened, synchronize, reopened]
-    paths-ignore:
-      - '.github/workflows/develop-throttler-ci-eso.yaml'  # Ignore if only ESO workflow changed
+
+# Both workflows should have the same concurrency group
+concurrency:
+  group: throttler-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: false  # Let both complete, but run sequentially
 
 jobs:
   build:
