@@ -4,6 +4,10 @@ on:
     branches: ['main']
     types: [opened, synchronize, reopened]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false # Do not cancel in-progress runs, let them finish and run the next one afterwards
+
 jobs:
   build:
     runs-on: ubuntu-latest
