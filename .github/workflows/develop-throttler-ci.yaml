@@ -2,7 +2,7 @@ name: Throttler Microservices CI
 on:
   pull_request:
     branches: ['main']
-    types: [opened, synchronize, reopened, closed]
+    types: [opened, synchronize, reopened]
 
 jobs:
   build:
