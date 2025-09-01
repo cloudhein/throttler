@@ -3,6 +3,8 @@ on:
   pull_request:
     branches: ['main']
     types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.github/workflows/develop-throttler-ci-eso.yaml'  # Ignore if only ESO workflow changed
 
 jobs:
   build:

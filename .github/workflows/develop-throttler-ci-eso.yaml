@@ -3,6 +3,8 @@ on:
   pull_request:
     branches: ['main']
     types: [opened, synchronize, reopened]
+    paths-ignore:
+      - '.github/workflows/develop-throttler-ci.yaml'  # Ignore if only non-ESO workflow changed
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
