@@ -21,84 +21,14 @@ jobs:
     secrets:
       sonar_token: ${{ secrets.SONAR_TOKEN }}
 
-  containerize:
-    runs-on: ubuntu-latest
-    needs: [throttler-service-ci]
-    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
-
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v4
-  
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
-
-      - name: Authenticate to Docker Hub
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
-        with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build Docker image (local only)
-        run: |
-          docker build -t "${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }}" .
-
-      - name: Scan image in a private registry
-        id: trivy-scan
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2
-        with:
-          image-ref: ${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }} 
-          scan-type: image
-          severity: 'CRITICAL'
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          scanners: 'vuln,secret'
-
-      - name: Push Docker images
-        # Only push if the scan was successful
-        if: steps.trivy-scan.outcome == 'success'
-        run: docker push "${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }}"
-
-  update-k8s-manifest:
-    runs-on: ubuntu-latest
-    needs: containerize
-    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
-    steps:
-      - name: Checkout application code
-        uses: actions/checkout@v4
-
-      - name: Checkout K8s manifest repository
-        uses: actions/checkout@v4
-        with:
-          repository: cloudhein/flextrack-microservices
-          ref: main  # or your target branch
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # PAT with repo access
-          path: flextrack-repo  # Checkout to subdirectory & used in multiple repo checkout
-
-      - name: Verify files exist
-        run: |
-          echo "Checking directory structure:"
-          ls -la flextrack-repo/flextrack-local-kind/
-          echo "Looking for throttler.yaml:"
-          ls -la flextrack-repo/flextrack-local-kind-eso/throttler.yaml
-
-      - name: Update Kubernetes manifest
-        run: |
-          # Update the manifest file in the k8s-manifests directory
-          sed -i "s|image: .*|image: ${{ vars.DOCKERHUB_USERNAME }}/throttler:${{ github.run_id }}|g" flextrack-repo/flextrack-local-kind-eso/throttler.yaml
-
-      - name: Commit and push changes to K8s repo
-        working-directory: flextrack-repo/flextrack-local-kind-eso
-        run: |
-          git config --local user.name "GitHub Actions Bot"
-          git config --local user.email "actions@github.com"
-          git add throttler.yaml
-          
-          # Check if there are changes to commit
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "[CI] Update throttler image to ${{ github.run_id }} from ${{ github.repository }} [skip ci]"
-            git push origin main  # or your target branch
-          fi
+  throttler-deploy-service:
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
+    needs: throttler-service-ci
+    uses: cloudhein/workflows/.github/workflows/deploy-jobs.yaml@bd81baeea9abdc00bdac1b3cd5ce92d126833809
+    with:
+      service-name: 'throttler'
+      dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
+      manifest-file: 'throttler.yaml'
+    secrets:
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
