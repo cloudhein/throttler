@@ -29,6 +29,8 @@ jobs:
       service-name: 'throttler'
       dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
       manifest-file: 'throttler.yaml'
+      repository: 'cloudhein/flextrack-microservices'
+      directory: 'flextrack-eks-cluster-eso'
     secrets:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
