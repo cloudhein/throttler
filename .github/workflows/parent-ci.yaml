@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   throttler-service-ci:
-    uses: cloudhein/workflows/.github/workflows/common-jobs.yaml@012a2b715ba5111dc74bda914344247a40d52eeb
+    uses: cloudhein/workflows/.github/workflows/common-jobs.yaml@68ad83ea0ce9d8d0c5a95fbe0cc0caae61e9c7c9
     with:
       working-directory: 'cmd/api'
       go-version: ">=1.22"
@@ -24,13 +24,11 @@ jobs:
   throttler-deploy-service:
     if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
     needs: throttler-service-ci
-    uses: cloudhein/workflows/.github/workflows/deploy-jobs.yaml@012a2b715ba5111dc74bda914344247a40d52eeb
+    uses: cloudhein/workflows/.github/workflows/deploy-jobs.yaml@68ad83ea0ce9d8d0c5a95fbe0cc0caae61e9c7c9
     with:
       service-name: 'throttler'
       dockerhub-username: ${{ vars.DOCKERHUB_USERNAME }}
-      manifest-file: 'throttler.yaml'
-      repository: 'cloudhein/flextrack-microservices'
-      directory: 'flextrack-eks-cluster-eso'
+      helm-repo: 'cloudhein/throttler-helm-chart'
     secrets:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
