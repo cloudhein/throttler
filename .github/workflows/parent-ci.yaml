@@ -14,7 +14,7 @@ jobs:
     uses: cloudhein/workflows/.github/workflows/common-jobs.yaml@68ad83ea0ce9d8d0c5a95fbe0cc0caae61e9c7c9
     with:
       working-directory: 'cmd/api'
-      go-version: ">=1.22"
+      go-version: ">=1.25"
       binary-name: 'throttler' # This maps to -o throttler
       sonar-project-key: cloudhein_throttler
       sonar-organization: cloudhein
