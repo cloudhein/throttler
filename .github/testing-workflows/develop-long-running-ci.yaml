@@ -1,0 +1,115 @@
+name: Develop Long Running Runner CI
+on:
+  push:
+    branches: ['staging']
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go 1.22
+        uses: actions/setup-go@v5
+        with:
+          go-version: ">=1.22"
+      
+      - name: Install dependency
+        run: |
+          go mod download
+
+      - name: Cache Go modules
+        id: cache-go-modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('go.mod', 'go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-        
+        
+      - name: Build
+        run: |
+          cd cmd/api
+          go build -o throttler .
+
+      - name: unit tests
+        run: |
+          cd cmd/api
+          go test ./...
+
+  code-quality:
+    runs-on: self-hosted
+    needs: [build]
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go 1.22
+        uses: actions/setup-go@v5
+        with:
+          go-version: ">=1.22"
+
+      - name: Restore Go modules cache
+        id: cache-go-modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('go.mod', 'go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-  
+
+      - name: Install dependencies
+        if: steps.cache-go-modules.outputs.cache-hit != 'true'
+        run: |
+          go mod download
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@e7fa5ac41e1cf5b7d48e45e42232ce7ada589601
+        with:
+          version: v2.1
+          args: golangci-lint run
+          working-directory: cmd/api
+        continue-on-error: true
+
+#   container:
+#     runs-on: [self-hosted, scaleset-01]
+#     needs: [build, code-quality]
+
+#     steps:
+#       - name: checkout code
+#         uses: actions/checkout@v4
+      
+#       - name: Authenticate to Docker Hub
+#         uses: docker/login-action@v3
+#         with:
+#           username: ${{ vars.DOCKERHUB_USERNAME }}
+#           password: ${{ secrets.DOCKERHUB_TOKEN }}
+  
+#       - name: Set up Docker Buildx
+#         uses: docker/setup-buildx-action@v3
+
+#       - name: Build Docker image (local only)
+#         run: |
+#           cd src/product-catalog
+#           docker build -t "${{ vars.DOCKERHUB_USERNAME }}/product-catalog:${{ github.run_id }}" .
+
+#       - name: Scan image in a private registry
+#         id: trivy-scan
+#         uses: aquasecurity/trivy-action@0.28.0
+#         with:
+#           image-ref: ${{ vars.DOCKERHUB_USERNAME }}/product-catalog:${{ github.run_id }}
+#           scan-type: image
+#           severity: 'CRITICAL'
+#           format: 'table'
+#           exit-code: '1'
+#           ignore-unfixed: true
+#           scanners: 'vuln,secret'
+
+#       - name: Push Docker images
+#         # Only push if the scan was successful
+#         if: steps.trivy-scan.outcome == 'success'
+#         run: docker push "${{ vars.DOCKERHUB_USERNAME }}/product-catalog:${{ github.run_id }}"
+
